@@ -4,10 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Save-Data" content="off">
+    <meta name="format-detection" content="telephone=no">
+
     <title>Угадай птицу</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -29,6 +40,26 @@
             position: relative;
         }
 
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            text-decoration: none;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+
+        .home-btn:active { transform: scale(0.9); }
+        .home-btn img { width: 28px; height: 28px; object-fit: contain; }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -36,10 +67,7 @@
             z-index: 1;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        .header { text-align: center; margin-bottom: 30px; }
 
         .title {
             font-size: 52px;
@@ -54,7 +82,7 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 15px 25px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 20px;
             font-size: 20px;
             font-weight: 700;
@@ -63,25 +91,10 @@
             transition: all 0.3s ease;
         }
 
-        .status.listening {
-            background: rgba(135, 206, 235, 0.95);
-            color: #1B5E20;
-        }
-
-        .status.choosing {
-            background: rgba(255, 249, 230, 0.95);
-            color: #D4A017;
-        }
-
-        .status.correct {
-            background: rgba(232, 245, 233, 0.95);
-            color: #4CAF50;
-        }
-
-        .status.wrong {
-            background: rgba(255, 235, 238, 0.95);
-            color: #F44336;
-        }
+        .status.listening { background: rgba(135, 206, 235, 0.9); color: #1B5E20; }
+        .status.choosing { background: rgba(255, 249, 230, 0.9); color: #D4A017; }
+        .status.correct { background: rgba(232, 245, 233, 0.9); color: #4CAF50; }
+        .status.wrong { background: rgba(255, 235, 238, 0.9); color: #F44336; }
 
         .birds-grid {
             display: grid;
@@ -105,14 +118,8 @@
             pointer-events: none;
         }
 
-        .bird-card.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .bird-card:active {
-            transform: scale(0.95);
-        }
+        .bird-card.active { opacity: 1; pointer-events: auto; }
+        .bird-card:active { transform: scale(0.95); }
 
         .bird-card.correct {
             border: 4px solid #4CAF50;
@@ -166,21 +173,10 @@
             margin-top: auto;
         }
 
-        .bird-card[data-id="1"] .bird-card__name {
-            background: linear-gradient(135deg, #9B7ED7 0%, #7B68C4 100%);
-        }
-
-        .bird-card[data-id="2"] .bird-card__name {
-            background: linear-gradient(135deg, #FFB347 0%, #FF8C42 100%);
-        }
-
-        .bird-card[data-id="3"] .bird-card__name {
-            background: linear-gradient(135deg, #7DD3FC 0%, #38BDF8 100%);
-        }
-
-        .bird-card[data-id="4"] .bird-card__name {
-            background: linear-gradient(135deg, #5EEAD4 0%, #14B8A6 100%);
-        }
+        .bird-card[data-id="1"] .bird-card__name { background: linear-gradient(135deg, #9B7ED7 0%, #7B68C4 100%); }
+        .bird-card[data-id="2"] .bird-card__name { background: linear-gradient(135deg, #FFB347 0%, #FF8C42 100%); }
+        .bird-card[data-id="3"] .bird-card__name { background: linear-gradient(135deg, #7DD3FC 0%, #38BDF8 100%); }
+        .bird-card[data-id="4"] .bird-card__name { background: linear-gradient(135deg, #5EEAD4 0%, #14B8A6 100%); }
 
         .controls {
             display: flex;
@@ -207,25 +203,10 @@
             gap: 8px;
         }
 
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .btn-play {
-            background: linear-gradient(135deg, #4ECDC4, #44A08D);
-            color: white;
-        }
-
-        .btn-back {
-            background: linear-gradient(135deg, #9E9E9E, #757575);
-            color: white;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-play { background: linear-gradient(135deg, #4ECDC4, #44A08D); color: white; }
+        .btn-back { background: linear-gradient(135deg, #9E9E9E, #757575); color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .fox-section {
             background: rgba(255, 255, 255, 0.95);
@@ -247,25 +228,14 @@
             text-align: center;
         }
 
-        .fox-image {
-            width: 180px;
-            height: 180px;
-            flex-shrink: 0;
-        }
-
-        .fox-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
+        .fox-image { width: 180px; height: 180px; flex-shrink: 0; }
+        .fox-image img { width: 100%; height: 100%; object-fit: contain; }
 
         .popup {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.6);
             z-index: 1000;
             align-items: center;
@@ -273,9 +243,7 @@
             backdrop-filter: blur(3px);
         }
 
-        .popup.active {
-            display: flex;
-        }
+        .popup.active { display: flex; }
 
         .popup__content {
             background: white;
@@ -287,10 +255,7 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.2);
         }
 
-        .popup__emoji {
-            font-size: 80px;
-            margin-bottom: 15px;
-        }
+        .popup__emoji { font-size: 80px; margin-bottom: 15px; }
 
         .popup__text {
             font-size: 22px;
@@ -299,9 +264,7 @@
             color: #2E7D32;
         }
 
-        .popup__text.error {
-            color: #F44336;
-        }
+        .popup__text.error { color: #F44336; }
 
         .popup__btn {
             padding: 12px 40px;
@@ -315,17 +278,9 @@
             transition: transform 0.2s;
         }
 
-        .popup__btn:hover {
-            transform: scale(1.05);
-        }
-
-        .popup__btn.success {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-        }
-
-        .popup__btn.error {
-            background: linear-gradient(135deg, #F44336, #da190b);
-        }
+        .popup__btn:hover { transform: scale(1.05); }
+        .popup__btn.success { background: linear-gradient(135deg, #4CAF50, #45a049); }
+        .popup__btn.error { background: linear-gradient(135deg, #F44336, #da190b); }
 
         @keyframes scaleIn {
             from { transform: scale(0.7); opacity: 0; }
@@ -333,36 +288,32 @@
         }
 
         @media (max-width: 1024px) {
-            .birds-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .birds-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
             .title { font-size: 40px; }
             .birds-grid { gap: 15px; padding: 0; }
             .bird-card__image-wrapper { height: 180px; }
-            .fox-section {
-                flex-direction: column;
-            }
-            .fox-image {
-                width: 150px;
-                height: 150px;
-            }
+            .fox-section { flex-direction: column; }
+            .fox-image { width: 150px; height: 150px; }
+            .home-btn { top: 15px; left: 15px; width: 45px; height: 45px; }
+            .home-btn img { width: 24px; height: 24px; }
         }
 
         @media (max-width: 480px) {
             .title { font-size: 32px; }
             .birds-grid { gap: 10px; }
             .bird-card__image-wrapper { height: 150px; }
-            .bird-card__name { 
-                padding: 12px; 
-                font-size: 16px; 
-            }
+            .bird-card__name { padding: 12px; font-size: 16px; }
         }
     </style>
 </head>
 <body>
+    <a href="index.html" class="home-btn" title="На главную">
+        <img src="home.svg" alt="Домой">
+    </a>
+
     <div class="container">
         <div class="header">
             <h1 class="title">Угадай птицу</h1>
@@ -403,19 +354,16 @@
         </div>
 
         <div class="fox-section">
-            <div class="fox-text">Лисичка ждёт твой ответ!</div>
+            <div class="fox-text">Лисичка ждёт твой ответ! 🦊</div>
             <div class="fox-image">
                 <img src="img/form/лисичка.png" alt="лисичка">
             </div>
         </div>
 
-        <!-- Добавлен webkit-playsinline для максимальной совместимости с iOS -->
-        <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
-
         <div class="popup" id="popupYes">
             <div class="popup__content">
-                <div class="popup__emoji">✨🦊</div>
-                <div class="popup__text">Молодец! Правильно!</div>
+                <div class="popup__emoji">✨🦊✨</div>
+                <div class="popup__text">Молодец! Правильно! 🎉</div>
                 <button class="popup__btn success" id="closeYes">Ещё раз</button>
             </div>
         </div>
@@ -431,13 +379,12 @@
 
     <script>
         const birds = [
-            { id: 1, name: 'Ворона', src: 'audio/1crow.ogg' },
-            { id: 2, name: 'Петух', src: 'audio/2rooster.ogg' },
-            { id: 3, name: 'Чайка', src: 'audio/3gull.ogg' },
-            { id: 4, name: 'Щегол', src: 'audio/4goldfinch.ogg' }
+            { id: 1, name: 'Ворона', src: 'audio/1crow.mp3', fallback: 'audio/1crow.ogg' },
+            { id: 2, name: 'Петух', src: 'audio/2rooster.mp3', fallback: 'audio/2rooster.ogg' },
+            { id: 3, name: 'Чайка', src: 'audio/3gull.mp3', fallback: 'audio/3gull.ogg' },
+            { id: 4, name: 'Щегол', src: 'audio/4goldfinch.mp3', fallback: 'audio/4goldfinch.ogg' }
         ];
 
-        const audio = document.getElementById('audio');
         const status = document.getElementById('status');
         const btnPlay = document.getElementById('btnPlay');
         const popupYes = document.getElementById('popupYes');
@@ -446,63 +393,61 @@
         const closeNo = document.getElementById('closeNo');
         const birdCards = document.querySelectorAll('.bird-card');
 
+        const sounds = {};
+        let audioInitialized = false;
         let currentBird = null;
-        let unlocked = false;
         let answered = false;
 
-        // 1. Надежная разблокировка звука для iOS/Android при первом касании
-        function unlockAudio() {
-            if (unlocked) return;
+        function initSounds() {
+            if (audioInitialized) return;
             
-            audio.muted = true;
-            // Короткий беззвучный WAV для обхода политики автовоспроизведения
-            audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-            
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    audio.pause();
-                    audio.muted = false;
-                    audio.src = '';
-                    unlocked = true;
-                    console.log('✅ Аудио успешно разблокировано');
-                }).catch(err => {
-                    console.warn('⚠️ Попытка разблокировки аудио:', err.message);
+            birds.forEach(bird => {
+                sounds[bird.id] = new Howl({
+                    src: [bird.src, bird.fallback],
+                    format: ['mp3', 'ogg'],
+                    html5: true,
+                    preload: true,
+                    volume: 1,
+                    onload: () => console.log(`✅ ${bird.name} загружен`),
+                    onloaderror: (id, err) => {
+                        console.error(`❌ Ошибка загрузки ${bird.name}:`, err);
+                    },
+                    onplayerror: (id, err) => {
+                        console.error(`️ Ошибка воспроизведения ${bird.name}:`, err);
+                        Howler.unload();
+                        setTimeout(() => sounds[bird.id].play(), 100);
+                    }
                 });
-            }
+            });
             
-            document.removeEventListener('touchstart', unlockAudio);
-            document.removeEventListener('click', unlockAudio);
+            audioInitialized = true;
         }
 
-        document.addEventListener('touchstart', unlockAudio, { passive: true });
-        document.addEventListener('click', unlockAudio);
-
-        // 2. Упрощенная и надежная функция воспроизведения (без setTimeout, который ломал контекст)
-        function playAudio(src) {
-            return new Promise((resolve, reject) => {
-                console.log('🎵 Запрос на воспроизведение:', src);
-                
-                audio.pause();
-                audio.currentTime = 0;
-                audio.src = src;
-                audio.load(); // Принудительная загрузка
-                
-                const playPromise = audio.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('✅ Воспроизведение началось');
-                        resolve();
-                    }).catch(error => {
-                        console.error('❌ Ошибка play():', error.name, error.message);
-                        reject(error);
-                    });
-                } else {
-                    resolve();
+        let soundUnlocked = false;
+        
+        function unlockSound() {
+            if (soundUnlocked) return;
+            
+            initSounds();
+            
+            const unlock = new Howl({
+                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwAAAAAAAAAAAAAAAAAAAA=='],
+                volume: 0,
+                onload: () => {
+                    unlock.play();
+                    setTimeout(() => { unlock.stop(); unlock.unload(); }, 100);
                 }
             });
+            
+            soundUnlocked = true;
+            console.log('✅ Звук разблокирован');
+            
+            document.removeEventListener('touchstart', unlockSound);
+            document.removeEventListener('click', unlockSound);
         }
+
+        document.addEventListener('touchstart', unlockSound, { passive: true });
+        document.addEventListener('click', unlockSound);
 
         function resetGame() {
             currentBird = null;
@@ -517,6 +462,8 @@
         }
 
         btnPlay.addEventListener('click', function() {
+            if (!audioInitialized) initSounds();
+            
             if (answered) {
                 resetGame();
                 setTimeout(playRandomBird, 300);
@@ -533,27 +480,24 @@
             status.className = 'status listening';
             btnPlay.disabled = true;
 
-            // Небольшая задержка только для визуального эффекта "думания", но внутри промиса
             setTimeout(() => {
-                playAudio(currentBird.src)
-                    .then(() => {
-                        status.textContent = '❓ Кто это был? Выбери птицу!';
-                        status.className = 'status choosing';
-                        birdCards.forEach(card => {
-                            card.classList.add('active');
+                try {
+                    if (sounds[currentBird.id]) {
+                        sounds[currentBird.id].play();
+                        
+                        sounds[currentBird.id].once('end', () => {
+                            status.textContent = '❓ Кто это был? Выбери птицу!';
+                            status.className = 'status choosing';
+                            birdCards.forEach(card => card.classList.add('active'));
+                            btnPlay.textContent = '🔁 Повторить';
+                            btnPlay.disabled = false;
                         });
-                        btnPlay.textContent = '🔁 Повторить';
-                        btnPlay.disabled = false;
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        if (err.name === 'NotFoundError') {
-                            status.textContent = '❌ Файл не найден. Проверьте папку audio/';
-                        } else {
-                            status.textContent = '⚠️ Ошибка воспроизведения';
-                        }
-                        btnPlay.disabled = false;
-                    });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    status.textContent = '⚠️ Ошибка воспроизведения';
+                    btnPlay.disabled = false;
+                }
             }, 300);
         }
 

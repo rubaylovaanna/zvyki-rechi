@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Угадай птицу</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-image: url('img/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 52px;
+            font-weight: 900;
+            color: #2E7D32;
+            text-shadow: 3px 3px 0px rgba(255,255,255,0.8);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            color: #2E7D32;
+            transition: all 0.3s ease;
+        }
+
+        .status.listening {
+            background: rgba(135, 206, 235, 0.95);
+            color: #1B5E20;
+        }
+
+        .status.choosing {
+            background: rgba(255, 249, 230, 0.95);
+            color: #D4A017;
+        }
+
+        .status.correct {
+            background: rgba(232, 245, 233, 0.95);
+            color: #4CAF50;
+        }
+
+        .status.wrong {
+            background: rgba(255, 235, 238, 0.95);
+            color: #F44336;
+        }
+
+        .birds-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        .bird-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .bird-card.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .bird-card:active {
+            transform: scale(0.95);
+        }
+
+        .bird-card.correct {
+            border: 4px solid #4CAF50;
+            box-shadow: 0 0 25px rgba(76, 175, 80, 0.6);
+            animation: correctPulse 0.6s;
+        }
+
+        .bird-card.wrong {
+            border: 4px solid #F44336;
+            box-shadow: 0 0 25px rgba(244, 67, 54, 0.6);
+            animation: wrongShake 0.5s;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .bird-card__image-wrapper {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
+        }
+
+        .bird-card img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .bird-card__name {
+            padding: 18px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .bird-card[data-id="1"] .bird-card__name {
+            background: linear-gradient(135deg, #9B7ED7 0%, #7B68C4 100%);
+        }
+
+        .bird-card[data-id="2"] .bird-card__name {
+            background: linear-gradient(135deg, #FFB347 0%, #FF8C42 100%);
+        }
+
+        .bird-card[data-id="3"] .bird-card__name {
+            background: linear-gradient(135deg, #7DD3FC 0%, #38BDF8 100%);
+        }
+
+        .bird-card[data-id="4"] .bird-card__name {
+            background: linear-gradient(135deg, #5EEAD4 0%, #14B8A6 100%);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border-radius: 30px;
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+            font-family: 'Nunito', sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #9E9E9E, #757575);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fox-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .fox-text {
+            font-size: 18px;
+            color: #2E7D32;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .fox-image {
+            width: 180px;
+            height: 180px;
+            flex-shrink: 0;
+        }
+
+        .fox-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+
+        .popup.active {
+            display: flex;
+        }
+
+        .popup__content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 320px;
+            animation: scaleIn 0.3s;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .popup__emoji {
+            font-size: 80px;
+            margin-bottom: 15px;
+        }
+
+        .popup__text {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2E7D32;
+        }
+
+        .popup__text.error {
+            color: #F44336;
+        }
+
+        .popup__btn {
+            padding: 12px 40px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            transition: transform 0.2s;
+        }
+
+        .popup__btn:hover {
+            transform: scale(1.05);
+        }
+
+        .popup__btn.success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .popup__btn.error {
+            background: linear-gradient(135deg, #F44336, #da190b);
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 1024px) {
+            .birds-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 40px; }
+            .birds-grid { gap: 15px; padding: 0; }
+            .bird-card__image-wrapper { height: 180px; }
+            .fox-section {
+                flex-direction: column;
+            }
+            .fox-image {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title { font-size: 32px; }
+            .birds-grid { gap: 10px; }
+            .bird-card__image-wrapper { height: 150px; }
+            .bird-card__name { 
+                padding: 12px; 
+                font-size: 16px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Угадай птицу</h1>
+        </div>
+
+        <div class="status" id="status">Нажми "Слушать" 🔊</div>
+
+        <div class="birds-grid">
+            <div class="bird-card" data-id="1">
+                <div class="bird-card__image-wrapper">
+                    <img src="img/form/crown.png" alt="ворона">
+                </div>
+                <div class="bird-card__name">Ворона</div>
+            </div>
+            <div class="bird-card" data-id="2">
+                <div class="bird-card__image-wrapper">
+                    <img src="img/form/cock.png" alt="петух">
+                </div>
+                <div class="bird-card__name">Петух</div>
+            </div>
+            <div class="bird-card" data-id="3">
+                <div class="bird-card__image-wrapper">
+                    <img src="img/form/gull.png" alt="чайка">
+                </div>
+                <div class="bird-card__name">Чайка</div>
+            </div>
+            <div class="bird-card" data-id="4">
+                <div class="bird-card__image-wrapper">
+                    <img src="img/form/goldfinch.png" alt="щегол">
+                </div>
+                <div class="bird-card__name">Щегол</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-play" id="btnPlay">🔊 Слушать</button>
+            <a href="index.html" class="btn btn-back">← Назад</a>
+        </div>
+
+        <div class="fox-section">
+            <div class="fox-text">Лисичка ждёт твой ответ!</div>
+            <div class="fox-image">
+                <img src="img/form/лисичка.png" alt="лисичка">
+            </div>
+        </div>
+
+        <!-- Добавлен webkit-playsinline для максимальной совместимости с iOS -->
+        <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
+
+        <div class="popup" id="popupYes">
+            <div class="popup__content">
+                <div class="popup__emoji">✨🦊</div>
+                <div class="popup__text">Молодец! Правильно!</div>
+                <button class="popup__btn success" id="closeYes">Ещё раз</button>
+            </div>
+        </div>
+
+        <div class="popup" id="popupNo">
+            <div class="popup__content">
+                <div class="popup__emoji">🦊</div>
+                <div class="popup__text error">Неправильно. Попробуй ещё!</div>
+                <button class="popup__btn error" id="closeNo">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const birds = [
+            { id: 1, name: 'Ворона', src: 'audio/1crow.ogg' },
+            { id: 2, name: 'Петух', src: 'audio/2rooster.ogg' },
+            { id: 3, name: 'Чайка', src: 'audio/3gull.ogg' },
+            { id: 4, name: 'Щегол', src: 'audio/4goldfinch.ogg' }
+        ];
+
+        const audio = document.getElementById('audio');
+        const status = document.getElementById('status');
+        const btnPlay = document.getElementById('btnPlay');
+        const popupYes = document.getElementById('popupYes');
+        const popupNo = document.getElementById('popupNo');
+        const closeYes = document.getElementById('closeYes');
+        const closeNo = document.getElementById('closeNo');
+        const birdCards = document.querySelectorAll('.bird-card');
+
+        let currentBird = null;
+        let unlocked = false;
+        let answered = false;
+
+        // 1. Надежная разблокировка звука для iOS/Android при первом касании
+        function unlockAudio() {
+            if (unlocked) return;
+            
+            audio.muted = true;
+            // Короткий беззвучный WAV для обхода политики автовоспроизведения
+            audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+            
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    audio.pause();
+                    audio.muted = false;
+                    audio.src = '';
+                    unlocked = true;
+                    console.log('✅ Аудио успешно разблокировано');
+                }).catch(err => {
+                    console.warn('⚠️ Попытка разблокировки аудио:', err.message);
+                });
+            }
+            
+            document.removeEventListener('touchstart', unlockAudio);
+            document.removeEventListener('click', unlockAudio);
+        }
+
+        document.addEventListener('touchstart', unlockAudio, { passive: true });
+        document.addEventListener('click', unlockAudio);
+
+        // 2. Упрощенная и надежная функция воспроизведения (без setTimeout, который ломал контекст)
+        function playAudio(src) {
+            return new Promise((resolve, reject) => {
+                console.log('🎵 Запрос на воспроизведение:', src);
+                
+                audio.pause();
+                audio.currentTime = 0;
+                audio.src = src;
+                audio.load(); // Принудительная загрузка
+                
+                const playPromise = audio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ Воспроизведение началось');
+                        resolve();
+                    }).catch(error => {
+                        console.error('❌ Ошибка play():', error.name, error.message);
+                        reject(error);
+                    });
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        function resetGame() {
+            currentBird = null;
+            answered = false;
+            status.textContent = 'Нажми "Слушать" 🔊';
+            status.className = 'status';
+            birdCards.forEach(card => {
+                card.classList.remove('correct', 'wrong', 'active');
+            });
+            btnPlay.disabled = false;
+            btnPlay.textContent = '🔊 Слушать';
+        }
+
+        btnPlay.addEventListener('click', function() {
+            if (answered) {
+                resetGame();
+                setTimeout(playRandomBird, 300);
+                return;
+            }
+            playRandomBird();
+        });
+
+        function playRandomBird() {
+            const randomIndex = Math.floor(Math.random() * birds.length);
+            currentBird = birds[randomIndex];
+            
+            status.textContent = '🎧 Слушай внимательно...';
+            status.className = 'status listening';
+            btnPlay.disabled = true;
+
+            // Небольшая задержка только для визуального эффекта "думания", но внутри промиса
+            setTimeout(() => {
+                playAudio(currentBird.src)
+                    .then(() => {
+                        status.textContent = '❓ Кто это был? Выбери птицу!';
+                        status.className = 'status choosing';
+                        birdCards.forEach(card => {
+                            card.classList.add('active');
+                        });
+                        btnPlay.textContent = '🔁 Повторить';
+                        btnPlay.disabled = false;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        if (err.name === 'NotFoundError') {
+                            status.textContent = '❌ Файл не найден. Проверьте папку audio/';
+                        } else {
+                            status.textContent = '⚠️ Ошибка воспроизведения';
+                        }
+                        btnPlay.disabled = false;
+                    });
+            }, 300);
+        }
+
+        birdCards.forEach(card => {
+            card.addEventListener('click', function() {
+                if (!currentBird || answered) return;
+
+                const selectedId = parseInt(this.dataset.id);
+                answered = true;
+
+                if (selectedId === currentBird.id) {
+                    this.classList.add('correct');
+                    status.textContent = '✅ Правильно!';
+                    status.className = 'status correct';
+                    setTimeout(() => popupYes.classList.add('active'), 600);
+                } else {
+                    this.classList.add('wrong');
+                    status.textContent = '❌ Неправильно!';
+                    status.className = 'status wrong';
+                    
+                    const correctCard = document.querySelector(`[data-id="${currentBird.id}"]`);
+                    if (correctCard) correctCard.classList.add('correct');
+                    
+                    setTimeout(() => popupNo.classList.add('active'), 1200);
+                }
+
+                birdCards.forEach(c => c.classList.remove('active'));
+                btnPlay.textContent = '🔄 Новая игра';
+            });
+        });
+
+        closeYes.addEventListener('click', () => {
+            popupYes.classList.remove('active');
+            resetGame();
+        });
+
+        closeNo.addEventListener('click', () => {
+            popupNo.classList.remove('active');
+            resetGame();
+        });
+
+        popupYes.addEventListener('click', (e) => {
+            if (e.target === popupYes) {
+                popupYes.classList.remove('active');
+                resetGame();
+            }
+        });
+
+        popupNo.addEventListener('click', (e) => {
+            if (e.target === popupNo) {
+                popupNo.classList.remove('active');
+                resetGame();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     
-    <!-- Мета-теги против экономии трафика и кэширования (критично для мобильных) -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta http-equiv="Save-Data" content="off">
-    <meta name="format-detection" content="telephone=no">
 
     <title>Птицы — изучаем голоса</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Подключаем Howler.js для надежной работы звука -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
     
     <style>
         * {
@@ -324,7 +325,6 @@
     </style>
 </head>
 <body>
-    <!-- Кнопка "Домой" -->
     <a href="index.html" class="home-btn" title="На главную">
         <img src="home.svg" alt="Домой">
     </a>
@@ -333,9 +333,9 @@
         <div class="header">
             <h1 class="title">Птицы</h1>
             <div class="subtitle">
-                <span></span>
+                <span>🌸</span>
                 Найди и запомни птиц
-                <span>🌿</span>
+                <span></span>
             </div>
         </div>
 
@@ -366,7 +366,7 @@
                 </div>
                 <div class="bird-card__name">
                     Чайка
-                    <span class="sound-icon">🔊</span>
+                    <span class="sound-icon"></span>
                 </div>
             </div>
             <div class="bird-card" data-id="4">
@@ -394,9 +394,6 @@
             </div>
         </div>
 
-        <!-- Скрытый video-тег для обхода беззвучного режима iPhone -->
-        <video id="mediaPlayer" preload="auto" playsinline webkit-playsinline style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;"></video>
-
         <div class="popup" id="popupYes">
             <div class="popup__content">
                 <img src="img/form/FineFox.png" alt="правильно">
@@ -413,15 +410,14 @@
     </div>
 
     <script>
-        // MP3 как основной формат + OGG как fallback
+        // Данные о птицах
         const birds = [
-            { id: 1, name: 'Ворона', src: 'audio/1crow.mp3', fallback: 'audio/1crow.ogg' },
-            { id: 2, name: 'Петух', src: 'audio/2rooster.mp3', fallback: 'audio/2rooster.ogg' },
-            { id: 3, name: 'Чайка', src: 'audio/3gull.mp3', fallback: 'audio/3gull.ogg' },
-            { id: 4, name: 'Щегол', src: 'audio/4goldfinch.mp3', fallback: 'audio/4goldfinch.ogg' }
+            { id: 1, name: 'Ворона', src: 'audio/1crow.mp3' },
+            { id: 2, name: 'Петух', src: 'audio/2rooster.mp3' },
+            { id: 3, name: 'Чайка', src: 'audio/3gull.mp3' },
+            { id: 4, name: 'Щегол', src: 'audio/4goldfinch.mp3' }
         ];
 
-        const player = document.getElementById('mediaPlayer');
         const status = document.getElementById('status');
         const popupYes = document.getElementById('popupYes');
         const popupNo = document.getElementById('popupNo');
@@ -429,76 +425,60 @@
         const closeNo = document.getElementById('closeNo');
         const birdCards = document.querySelectorAll('.bird-card');
 
-        let unlocked = false;
-        let audioContext = null;
-
-        // Web Audio API Unlock (будит звуковой движок Safari/Chrome)
-        function initAudioContext() {
-            if (!audioContext) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioContext = new AudioContext();
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            
-            // Дополнительная разблокировка через медиа-плеер
-            if (!unlocked) {
-                player.muted = true;
-                player.play().then(() => {
-                    player.pause();
-                    player.muted = false;
-                    unlocked = true;
-                    console.log('✅ Медиа-плеер разблокирован');
-                }).catch(() => {});
-            }
-            
-            document.removeEventListener('touchstart', initAudioContext);
-            document.removeEventListener('click', initAudioContext);
-        }
-
-        document.addEventListener('touchstart', initAudioContext, { passive: true });
-        document.addEventListener('click', initAudioContext);
-
-        // Мгновенный запуск + двойной формат (MP3 + OGG fallback)
-        function playMedia(src, fallbackSrc) {
-            return new Promise((resolve, reject) => {
-                player.pause();
-                player.currentTime = 0;
-                player.innerHTML = '';
-
-                // Основной формат MP3
-                const source1 = document.createElement('source');
-                source1.src = src;
-                source1.type = 'audio/mpeg';
-                player.appendChild(source1);
-
-                // Запасной формат OGG
-                if (fallbackSrc) {
-                    const source2 = document.createElement('source');
-                    source2.src = fallbackSrc;
-                    source2.type = 'audio/ogg';
-                    player.appendChild(source2);
-                }
-
-                player.load();
-
-                const playPromise = player.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('✅ Воспроизведение началось:', src);
-                        resolve();
-                    }).catch(err => {
-                        console.error('❌ Ошибка воспроизведения:', err.name, err.message);
-                        reject(err);
-                    });
-                } else {
-                    resolve();
+        // Создаем объекты Howl для каждого звука
+        const sounds = {};
+        birds.forEach(bird => {
+            sounds[bird.id] = new Howl({
+                src: [bird.src],
+                format: ['mp3'],
+                html5: true, // Используем HTML5 Audio для лучшей совместимости
+                preload: true,
+                onload: () => {
+                    console.log(`✅ Звук ${bird.name} загружен`);
+                },
+                onloaderror: (id, error) => {
+                    console.error(`❌ Ошибка загрузки ${bird.name}:`, error);
+                    status.textContent = `⚠️ Ошибка загрузки: ${bird.name}`;
+                },
+                onplayerror: (id, error) => {
+                    console.error(` Ошибка воспроизведения ${bird.name}:`, error);
+                    // Автоматически разблокируем звук при ошибке
+                    Howler.unload();
+                    sounds[bird.id].play();
                 }
             });
+        });
+
+        // Разблокировка звука при первом касании
+        let soundUnlocked = false;
+        
+        function unlockSound() {
+            if (soundUnlocked) return;
+            
+            // Пытаемся воспроизвести тишину для разблокировки
+            const unlock = new Howl({
+                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwAAAAAAAAAAAAAAAAAAAA=='],
+                volume: 0,
+                onload: () => {
+                    unlock.play();
+                    setTimeout(() => {
+                        unlock.stop();
+                        unlock.unload();
+                    }, 100);
+                }
+            });
+            
+            soundUnlocked = true;
+            console.log('✅ Звук разблокирован');
+            
+            document.removeEventListener('touchstart', unlockSound);
+            document.removeEventListener('click', unlockSound);
         }
 
-        // Синхронная обработка клика
+        document.addEventListener('touchstart', unlockSound, { passive: true });
+        document.addEventListener('click', unlockSound);
+
+        // Обработка клика по карточке
         birdCards.forEach(card => {
             card.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -507,24 +487,31 @@
                 const bird = birds.find(b => b.id === id);
                 if (!bird) return;
 
+                // Останавливаем все звуки
+                Howler.stop();
+
+                // Визуальный эффект
                 document.querySelectorAll('.bird-card').forEach(c => c.classList.remove('playing'));
                 this.classList.add('playing');
                 status.textContent = `🎵 ${bird.name}`;
 
-                playMedia(bird.src, bird.fallback)
-                    .then(() => {
-                        status.textContent = `🎶 ${bird.name} поёт`;
-                    })
-                    .catch(() => {
-                        status.textContent = '️ Нажмите на экран и попробуйте снова';
+                // Воспроизводим звук
+                try {
+                    sounds[id].play();
+                    status.textContent = `🎶 ${bird.name} поёт`;
+                    
+                    sounds[id].on('end', () => {
+                        status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
+                        this.classList.remove('playing');
                     });
-
-                setTimeout(() => {
-                    this.classList.remove('playing');
-                }, 1000);
+                } catch (error) {
+                    console.error('Ошибка воспроизведения:', error);
+                    status.textContent = '️ Нажмите еще раз';
+                }
             });
         });
 
+        // Закрытие попапов
         closeYes.addEventListener('click', () => {
             popupYes.classList.remove('active');
             status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
@@ -535,9 +522,9 @@
             status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
         });
 
-        player.addEventListener('ended', () => {
-            status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
-            document.querySelectorAll('.bird-card').forEach(c => c.classList.remove('playing'));
+        // Обработка ошибок Howler
+        Howler.on('loaderror', (id, error) => {
+            console.error('Глобальная ошибка загрузки:', error);
         });
     </script>
 </body>

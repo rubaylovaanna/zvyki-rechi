@@ -4,18 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     
+    <!-- Мета-теги против экономии трафика и кэширования -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta http-equiv="Save-Data" content="off">
+    <meta name="format-detection" content="telephone=no">
 
     <title>Птицы — изучаем голоса</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- Подключаем Howler.js для надежной работы звука -->
+    <!-- Howler.js для надежной работы звука на всех мобильных -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
     
     <style>
@@ -39,6 +42,7 @@
             position: relative;
         }
 
+        /* Кнопка "Домой" */
         .home-btn {
             position: fixed;
             top: 20px;
@@ -261,6 +265,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(3px);
         }
 
         .popup.active {
@@ -272,13 +277,25 @@
             border-radius: 20px;
             padding: 30px;
             text-align: center;
-            max-width: 300px;
+            max-width: 320px;
             animation: scaleIn 0.3s;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
         }
 
-        .popup__content img {
-            width: 150px;
+        .popup__emoji {
+            font-size: 80px;
             margin-bottom: 15px;
+        }
+
+        .popup__text {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2E7D32;
+        }
+
+        .popup__text.error {
+            color: #F44336;
         }
 
         .popup__btn {
@@ -290,10 +307,20 @@
             font-weight: 700;
             color: white;
             font-family: 'Nunito', sans-serif;
+            transition: transform 0.2s;
         }
 
-        .popup__btn.success { background: #4CAF50; }
-        .popup__btn.error { background: #F44336; }
+        .popup__btn:hover {
+            transform: scale(1.05);
+        }
+
+        .popup__btn.success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .popup__btn.error {
+            background: linear-gradient(135deg, #F44336, #da190b);
+        }
 
         @keyframes scaleIn {
             from { transform: scale(0.7); opacity: 0; }
@@ -301,7 +328,9 @@
         }
 
         @media (max-width: 1024px) {
-            .birds-grid { grid-template-columns: repeat(2, 1fr); }
+            .birds-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 768px) {
@@ -309,22 +338,40 @@
             .subtitle { font-size: 16px; }
             .birds-grid { gap: 15px; padding: 0; }
             .bird-card__image-wrapper { height: 180px; }
-            .fox-section { flex-direction: column; text-align: center; }
-            .fox-image { width: 180px; height: 180px; }
-            .home-btn { top: 15px; left: 15px; width: 45px; height: 45px; }
-            .home-btn img { width: 24px; height: 24px; }
+            .fox-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            .fox-image {
+                width: 180px;
+                height: 180px;
+            }
+            .home-btn {
+                top: 15px;
+                left: 15px;
+                width: 45px;
+                height: 45px;
+            }
+            .home-btn img {
+                width: 24px;
+                height: 24px;
+            }
         }
 
         @media (max-width: 480px) {
             .title { font-size: 32px; }
             .birds-grid { gap: 10px; }
             .bird-card__image-wrapper { height: 150px; }
-            .bird-card__name { padding: 12px; font-size: 16px; }
+            .bird-card__name { 
+                padding: 12px; 
+                font-size: 16px; 
+            }
             .fox-image { width: 150px; height: 150px; }
         }
     </style>
 </head>
 <body>
+    <!-- Кнопка "Домой" -->
     <a href="index.html" class="home-btn" title="На главную">
         <img src="home.svg" alt="Домой">
     </a>
@@ -335,7 +382,7 @@
             <div class="subtitle">
                 <span>🌸</span>
                 Найди и запомни птиц
-                <span></span>
+                <span>🌿</span>
             </div>
         </div>
 
@@ -366,7 +413,7 @@
                 </div>
                 <div class="bird-card__name">
                     Чайка
-                    <span class="sound-icon"></span>
+                    <span class="sound-icon">🔊</span>
                 </div>
             </div>
             <div class="bird-card" data-id="4">
@@ -375,7 +422,7 @@
                 </div>
                 <div class="bird-card__name">
                     Щегол
-                    <span class="sound-icon">🔊</span>
+                    <span class="sound-icon"></span>
                 </div>
             </div>
         </div>
@@ -396,24 +443,26 @@
 
         <div class="popup" id="popupYes">
             <div class="popup__content">
-                <img src="img/form/FineFox.png" alt="правильно">
+                <div class="popup__emoji">✨✨</div>
+                <div class="popup__text">Молодец! Правильно! </div>
                 <button class="popup__btn success" id="closeYes">ОК</button>
             </div>
         </div>
 
         <div class="popup" id="popupNo">
             <div class="popup__content">
-                <img src="img/form/BadlyFox.png" alt="неправильно">
+                <div class="popup__emoji">🦊</div>
+                <div class="popup__text error">Неправильно. Попробуй ещё!</div>
                 <button class="popup__btn error" id="closeNo">ОК</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Данные о птицах
+        // Данные о птицах (cock.mp3 вместо rooster.mp3)
         const birds = [
             { id: 1, name: 'Ворона', src: 'audio/1crow.mp3' },
-            { id: 2, name: 'Петух', src: 'audio/2rooster.mp3' },
+            { id: 2, name: 'Петух', src: 'audio/cock.mp3' },
             { id: 3, name: 'Чайка', src: 'audio/3gull.mp3' },
             { id: 4, name: 'Щегол', src: 'audio/4goldfinch.mp3' }
         ];
@@ -427,27 +476,35 @@
 
         // Создаем объекты Howl для каждого звука
         const sounds = {};
-        birds.forEach(bird => {
-            sounds[bird.id] = new Howl({
-                src: [bird.src],
-                format: ['mp3'],
-                html5: true, // Используем HTML5 Audio для лучшей совместимости
-                preload: true,
-                onload: () => {
-                    console.log(`✅ Звук ${bird.name} загружен`);
-                },
-                onloaderror: (id, error) => {
-                    console.error(`❌ Ошибка загрузки ${bird.name}:`, error);
-                    status.textContent = `⚠️ Ошибка загрузки: ${bird.name}`;
-                },
-                onplayerror: (id, error) => {
-                    console.error(` Ошибка воспроизведения ${bird.name}:`, error);
-                    // Автоматически разблокируем звук при ошибке
-                    Howler.unload();
-                    sounds[bird.id].play();
-                }
+        let audioInitialized = false;
+
+        // Инициализация звуков
+        function initSounds() {
+            if (audioInitialized) return;
+            
+            birds.forEach(bird => {
+                sounds[bird.id] = new Howl({
+                    src: [bird.src],
+                    format: ['mp3'],
+                    html5: true,
+                    preload: true,
+                    volume: 1,
+                    onload: () => console.log(`✅ ${bird.name} загружен`),
+                    onloaderror: (id, err) => {
+                        console.error(`❌ Ошибка загрузки ${bird.name}:`, err);
+                        status.textContent = `⚠️ Ошибка: ${bird.name}`;
+                    },
+                    onplayerror: (id, err) => {
+                        console.error(`⚠️ Ошибка воспроизведения ${bird.name}:`, err);
+                        // Автоматическая разблокировка при ошибке
+                        Howler.unload();
+                        setTimeout(() => sounds[bird.id].play(), 100);
+                    }
+                });
             });
-        });
+            
+            audioInitialized = true;
+        }
 
         // Разблокировка звука при первом касании
         let soundUnlocked = false;
@@ -455,7 +512,10 @@
         function unlockSound() {
             if (soundUnlocked) return;
             
-            // Пытаемся воспроизвести тишину для разблокировки
+            // Инициализируем звуки
+            initSounds();
+            
+            // Тихий звук для разблокировки аудио-контекста
             const unlock = new Howl({
                 src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwAAAAAAAAAAAAAAAAAAAA=='],
                 volume: 0,
@@ -483,6 +543,10 @@
             card.addEventListener('click', function(e) {
                 e.preventDefault();
                 
+                if (!audioInitialized) {
+                    initSounds();
+                }
+                
                 const id = parseInt(this.dataset.id);
                 const bird = birds.find(b => b.id === id);
                 if (!bird) return;
@@ -491,23 +555,30 @@
                 Howler.stop();
 
                 // Визуальный эффект
-                document.querySelectorAll('.bird-card').forEach(c => c.classList.remove('playing'));
+                document.querySelectorAll('.bird-card').forEach(c => {
+                    c.classList.remove('playing');
+                });
                 this.classList.add('playing');
+                
                 status.textContent = `🎵 ${bird.name}`;
 
-                // Воспроизводим звук
-                try {
-                    sounds[id].play();
-                    status.textContent = `🎶 ${bird.name} поёт`;
-                    
-                    sounds[id].on('end', () => {
-                        status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
-                        this.classList.remove('playing');
-                    });
-                } catch (error) {
-                    console.error('Ошибка воспроизведения:', error);
-                    status.textContent = '️ Нажмите еще раз';
-                }
+                // Воспроизводим звук с небольшой задержкой для стабильности
+                setTimeout(() => {
+                    try {
+                        if (sounds[id]) {
+                            sounds[id].play();
+                            status.textContent = ` ${bird.name} поёт`;
+                            
+                            sounds[id].once('end', () => {
+                                status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
+                                this.classList.remove('playing');
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Ошибка воспроизведения:', error);
+                        status.textContent = '⚠️ Нажмите еще раз';
+                    }
+                }, 50);
             });
         });
 
@@ -522,7 +593,22 @@
             status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
         });
 
-        // Обработка ошибок Howler
+        // Закрытие попапов при клике вне контента
+        popupYes.addEventListener('click', (e) => {
+            if (e.target === popupYes) {
+                popupYes.classList.remove('active');
+                status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
+            }
+        });
+
+        popupNo.addEventListener('click', (e) => {
+            if (e.target === popupNo) {
+                popupNo.classList.remove('active');
+                status.textContent = 'Нажми на птичку, чтобы послушать 🔊';
+            }
+        });
+
+        // Глобальная обработка ошибок Howler
         Howler.on('loaderror', (id, error) => {
             console.error('Глобальная ошибка загрузки:', error);
         });
